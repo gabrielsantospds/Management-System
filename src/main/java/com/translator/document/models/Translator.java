@@ -2,6 +2,7 @@ package com.translator.document.models;
 
 import jakarta.persistence.*;
 
+// The annotation indicates that this Class will be an Entity in the database
 @Entity
 public class Translator {
 
