@@ -1,41 +1,72 @@
 package com.translator.document.controllers;
 
+import com.translator.document.dtos.TranslatorDTO;
 import com.translator.document.models.Translator;
+import com.translator.document.services.TranslatorService;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Optional;
+
 
 // The annotation is used to create a RESTFul controller
-// The methods return data directly in the HTTP response body
 @RestController
 public class TranslatorController {
 
-    // Handles HTTP GET requests to /translators
-    @GetMapping("/translators")
-    public ResponseEntity<Translator> getAllTranslators() {
-        // Returns 200 code and a list of translators
-        return ResponseEntity.status(HttpStatus.OK).body(new Translator());
-    }
+    // @Autowired is used to automatically inject the dependencies into the class
+    @Autowired
+    private TranslatorService translatorService;
 
-    // Handles HTTP POST requests to /translators
     @PostMapping("/translator")
-    public ResponseEntity<String> saveTranslator() {
-        // Returns 201 code and the confirmation message that the translator has been saved
-        return ResponseEntity.status(HttpStatus.CREATED).body("Translator saved");
+    public ResponseEntity<Translator> saveTranslator(@RequestBody TranslatorDTO translatorDTO) {
+        // Creates a new translator and copies the properties of the translatorDTO to save it in the database
+        Translator translator = new Translator();
+        BeanUtils.copyProperties(translatorDTO, translator);
+        return ResponseEntity.status(HttpStatus.CREATED).body(translatorService.saveTranslator(translator));
     }
 
-    // Handles HTTP PUT requests to /translator/translatorId
+    @GetMapping("/translators")
+    public ResponseEntity<List<Translator>> getAllTranslators() {
+        return ResponseEntity.status(HttpStatus.OK).body(translatorService.getAllTranslators());
+    }
+
     @PutMapping("/translator/{id}")
-    public ResponseEntity<Translator> updateTranslator(@PathVariable Long id) {
-        // Returns 200 code and updated translator data
-        return ResponseEntity.status(HttpStatus.OK).body(new Translator());
+    public ResponseEntity<Object> updateTranslator(
+            @PathVariable Long id,
+            @RequestBody TranslatorDTO translatorDTO
+    ) {
+        // Checks if the translator exists by the provided id
+        Optional<Translator> optionalTranslator = translatorService.findTranslatorById(id);
+        if(optionalTranslator.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Translator not found");
+        }
+
+        // Creates a new translator and copies the properties of the translatorDTO to save and update it in the database
+        Translator translator = new Translator();
+        BeanUtils.copyProperties(translatorDTO, translator);
+        Translator translatorFound = optionalTranslator.get();
+        // Keeps the same id that was defined in the object
+        translator.setId(translatorFound.getId());
+        return ResponseEntity.status(HttpStatus.OK).body(translatorService.saveTranslator(translator));
     }
 
-    // Handles HTTP DELETE requests to /translator/translatorId
     @DeleteMapping("/translator/{id}")
     public ResponseEntity<String> deleteTranslator(@PathVariable Long id) {
-        //Returns 200 code and the confirmation message that the translator has been deleted
+
+        // Checks if the translator exists by the provided id
+        Optional<Translator> optionalTranslator = translatorService.findTranslatorById(id);
+
+        if(optionalTranslator.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Translator not found");
+        }
+
+        Translator translatorFound = optionalTranslator.get();
+        translatorService.deleteTranslator(translatorFound);
+
         return ResponseEntity.status(HttpStatus.OK).body("Translator deleted successfully");
     }
 }

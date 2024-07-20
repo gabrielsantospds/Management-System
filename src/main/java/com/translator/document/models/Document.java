@@ -8,7 +8,6 @@ public class Document {
 
     // Uses column annotation to specify details when mapping the attributes in the database
     @Id
-    // The id attribute will be generated automatically
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(unique = true, nullable = false)
     private Long id;
@@ -18,12 +17,24 @@ public class Document {
     private String content;
     @Column(nullable = false)
     private String locale;
-    @Column(nullable = false)
-    private String author;
+
+    // Specifies the association between the translator and document classes
+    @ManyToOne
+    // This will add a translator email column to the document table as a foreign key
+    @JoinColumn(
+            nullable = false,
+            name = "author",
+            referencedColumnName = "email"
+    )
+    private Translator author;
 
     // Generate getters and setters to access and manipulate the attribute data
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getSubject() {
@@ -50,11 +61,11 @@ public class Document {
         this.locale = locale;
     }
 
-    public String getAuthor() {
+    public Translator getAuthor() {
         return author;
     }
 
-    public void setAuthor(String author) {
+    public void setAuthor(Translator author) {
         this.author = author;
     }
 }

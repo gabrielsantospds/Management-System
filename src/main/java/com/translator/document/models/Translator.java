@@ -8,13 +8,12 @@ public class Translator {
 
     // Uses column annotation to specify details when mapping the attributes in the database
     @Id
-    // The id attribute will be generated automatically
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(unique = true, nullable = false)
     private Long id;
     @Column(nullable = false)
     private String name;
-    @Column(nullable = false)
+    @Column(unique = true, nullable = false)
     private String email;
     @Column(nullable = false)
     private String source_language;
@@ -24,6 +23,10 @@ public class Translator {
     // Generate getters and setters to access and manipulate the attribute data
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {
