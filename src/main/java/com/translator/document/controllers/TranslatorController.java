@@ -23,14 +23,13 @@ public class TranslatorController {
 
     @PostMapping("/translator")
     public ResponseEntity<Translator> saveTranslator(@RequestBody TranslatorDTO translatorDTO) {
-        // Creates a new translator and copies the properties of the translatorDTO to save it in the database
-        Translator translator = new Translator();
-        BeanUtils.copyProperties(translatorDTO, translator);
-        return ResponseEntity.status(HttpStatus.CREATED).body(translatorService.saveTranslator(translator));
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(translatorService.saveTranslator(translatorDTO));
     }
 
     @GetMapping("/translators")
     public ResponseEntity<List<Translator>> getAllTranslators() {
+
         return ResponseEntity.status(HttpStatus.OK).body(translatorService.getAllTranslators());
     }
 
@@ -41,17 +40,12 @@ public class TranslatorController {
     ) {
         // Checks if the translator exists by the provided id
         Optional<Translator> optionalTranslator = translatorService.findTranslatorById(id);
+
         if(optionalTranslator.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Translator not found");
         }
 
-        // Creates a new translator and copies the properties of the translatorDTO to save and update it in the database
-        Translator translator = new Translator();
-        BeanUtils.copyProperties(translatorDTO, translator);
-        Translator translatorFound = optionalTranslator.get();
-        // Keeps the same id that was defined in the object
-        translator.setId(translatorFound.getId());
-        return ResponseEntity.status(HttpStatus.OK).body(translatorService.saveTranslator(translator));
+        return ResponseEntity.status(HttpStatus.OK).body(translatorService.updateTranslator(translatorDTO, id));
     }
 
     @DeleteMapping("/translator/{id}")

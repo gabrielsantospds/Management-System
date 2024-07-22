@@ -3,6 +3,7 @@ package com.translator.document.services;
 import com.translator.document.dtos.TranslatorDTO;
 import com.translator.document.models.Translator;
 import com.translator.document.repositories.TranslatorRepository;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +28,19 @@ public class TranslatorService {
         return translatorRepository.findById(id);
     }
 
-    public Translator saveTranslator(Translator translator) {
+    public Translator saveTranslator(TranslatorDTO translatorDTO) {
+        // Creates a new translator and copies the properties of the translatorDTO to save it in the database
+        Translator translator = new Translator();
+        BeanUtils.copyProperties(translatorDTO, translator);
+        return translatorRepository.save(translator);
+    }
+
+    public Translator updateTranslator(TranslatorDTO translatorDTO, Long translatorId) {
+        // Creates a new translator and copies the properties of the translatorDTO to save and update it in the database
+        Translator translator = new Translator();
+        BeanUtils.copyProperties(translatorDTO, translator);
+        // Keeps the same id that was defined in the object
+        translator.setId(translatorId);
         return translatorRepository.save(translator);
     }
 

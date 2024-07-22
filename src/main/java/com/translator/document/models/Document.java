@@ -1,6 +1,7 @@
 package com.translator.document.models;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 
 // The annotation indicates that this Class will be an Entity in the database
 @Entity
@@ -27,6 +28,16 @@ public class Document {
             referencedColumnName = "email"
     )
     private Translator author;
+
+    public Document(String subject, String content, String locale, Translator author) {
+        this.subject = subject;
+        this.content = content;
+        this.locale = locale;
+        this.author = author;
+    }
+
+    public Document() {
+    }
 
     // Generate getters and setters to access and manipulate the attribute data
     public Long getId() {
