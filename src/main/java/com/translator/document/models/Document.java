@@ -24,8 +24,8 @@ public class Document {
     // This will add a translator email column to the document table as a foreign key
     @JoinColumn(
             nullable = false,
-            name = "author",
-            referencedColumnName = "email"
+            name = "traslator_id",
+            referencedColumnName = "id"
     )
     private Translator author;
 

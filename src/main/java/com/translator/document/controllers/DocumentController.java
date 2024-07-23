@@ -6,6 +6,9 @@ import com.translator.document.models.Translator;
 import com.translator.document.services.DocumentService;
 import com.translator.document.services.TranslatorService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -28,18 +31,21 @@ public class DocumentController {
     private DocumentService documentService;
 
     @PostMapping(value = "/document", consumes = {"multipart/form-data"})
-    public ResponseEntity<Object> saveDocument(@RequestPart("file")MultipartFile file) {
-        try {
-            return ResponseEntity.status(HttpStatus.CREATED).body(documentService.saveDocument(file));
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("There was a problem reading the file");
-        }
-
+    public ResponseEntity<Object> saveDocument(@RequestPart("file")MultipartFile file) throws IOException {
+            Integer numberOfDocumentsSaved = documentService.saveDocument(file);
+            return ResponseEntity.status(HttpStatus.CREATED).body(
+                    numberOfDocumentsSaved + " documents were saved"
+            );
     }
 
     @GetMapping("/documents")
-    public ResponseEntity<List<Document>> getAllDocuments() {
-        return ResponseEntity.status(HttpStatus.OK).body(documentService.getAllDocuments());
+    public ResponseEntity<PagedModel<DocumentDTO>> getAllDocuments(
+            @RequestParam int page,
+            @PageableDefault(size = 5) Pageable pageable
+    ) {
+        pageable.withPage(page);
+        // Gets a Pageable object with the page number and page size
+        return ResponseEntity.status(HttpStatus.OK).body(documentService.getAllDocuments(pageable));
     }
 
     @PutMapping("/document/{id}")

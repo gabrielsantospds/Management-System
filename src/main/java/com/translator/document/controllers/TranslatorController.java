@@ -5,6 +5,10 @@ import com.translator.document.models.Translator;
 import com.translator.document.services.TranslatorService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +19,7 @@ import java.util.Optional;
 
 // The annotation is used to create a RESTFul controller
 @RestController
+@CrossOrigin(origins = "http://localhost:5173")
 public class TranslatorController {
 
     // @Autowired is used to automatically inject the dependencies into the class
@@ -24,13 +29,18 @@ public class TranslatorController {
     @PostMapping("/translator")
     public ResponseEntity<Translator> saveTranslator(@RequestBody TranslatorDTO translatorDTO) {
 
+        // Handle when email already exists
         return ResponseEntity.status(HttpStatus.CREATED).body(translatorService.saveTranslator(translatorDTO));
     }
 
     @GetMapping("/translators")
-    public ResponseEntity<List<Translator>> getAllTranslators() {
-
-        return ResponseEntity.status(HttpStatus.OK).body(translatorService.getAllTranslators());
+    public ResponseEntity<PagedModel<Translator>> getAllTranslators(
+            @RequestParam int page,
+            @PageableDefault(size = 5) Pageable pageable
+    ) {
+        pageable.withPage(page);
+        // Gets a Pageable object with the page number and page size
+        return ResponseEntity.status(HttpStatus.OK).body(translatorService.getAllTranslators(pageable));
     }
 
     @PutMapping("/translator/{id}")

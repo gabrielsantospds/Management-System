@@ -5,7 +5,11 @@ import com.translator.document.models.Translator;
 import com.translator.document.repositories.TranslatorRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedModel;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,6 +32,8 @@ public class TranslatorService {
         return translatorRepository.findById(id);
     }
 
+    // Uses this annotation to make database operations in an atomic and consistent manner
+    @Transactional
     public Translator saveTranslator(TranslatorDTO translatorDTO) {
         // Creates a new translator and copies the properties of the translatorDTO to save it in the database
         Translator translator = new Translator();
@@ -35,6 +41,7 @@ public class TranslatorService {
         return translatorRepository.save(translator);
     }
 
+    @Transactional
     public Translator updateTranslator(TranslatorDTO translatorDTO, Long translatorId) {
         // Creates a new translator and copies the properties of the translatorDTO to save and update it in the database
         Translator translator = new Translator();
@@ -44,10 +51,12 @@ public class TranslatorService {
         return translatorRepository.save(translator);
     }
 
-    public List<Translator> getAllTranslators() {
-        return translatorRepository.findAll();
+    public PagedModel<Translator> getAllTranslators(Pageable pageable) {
+        // Fetches data in a paged form
+        return new PagedModel<>(translatorRepository.findAll(pageable));
     }
 
+    @Transactional
     public void deleteTranslator(Translator translator) {
         translatorRepository.delete(translator);
     }

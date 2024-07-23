@@ -9,7 +9,10 @@ import com.translator.document.models.DocumentCsvRepresentation;
 import com.translator.document.models.Translator;
 import com.translator.document.repositories.DocumentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedModel;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.BufferedReader;
@@ -17,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -38,20 +42,11 @@ public class DocumentService {
         return documentRepository.findById(id);
     }
 
-//    public Document saveDocument(DocumentDTO documentDTO, Translator translator) {
-//
-//        Document document = new Document();
-//        document.setSubject(documentDTO.subject());
-//        document.setContent(documentDTO.content());
-//        document.setLocale(documentDTO.locale());
-//        document.setAuthor(translator);
-//
-//        return documentRepository.save(document);
-//    }
-
+    // Uses this annotation to make database operations in an atomic and consistent manner
+    @Transactional
     public Integer saveDocument(MultipartFile file) throws IOException {
         Set<Document> documents = parseCsv(file);
-        if(documents == null) {
+        if(documents == null || documents.isEmpty()) {
             return 0;
         }
         documentRepository.saveAll(documents);
@@ -82,13 +77,16 @@ public class DocumentService {
                                     csvLine.getLocale(),
                                     translatorFound
                             );
+                        } else {
+                            return null;
                         }
-                        return null;
                     })
+                    .filter(Objects::nonNull)
                     .collect(Collectors.toSet());
         }
     }
 
+    @Transactional
     public Document updateDocument(DocumentDTO documentDTO, Translator translator, Long documentId) {
         Document document = new Document();
         // Keeps the same id that was defined in the object
@@ -100,10 +98,16 @@ public class DocumentService {
         return documentRepository.save(document);
     }
 
-    public List<Document> getAllDocuments() {
-        return documentRepository.findAll();
+    public PagedModel<DocumentDTO> getAllDocuments(Pageable pageable) {
+        return new PagedModel<>(documentRepository.findAll(pageable).map(document -> new DocumentDTO(
+                document.getSubject(),
+                document.getContent(),
+                document.getLocale(),
+                document.getAuthor().getEmail()
+        )));
     }
 
+    @Transactional
     public void deleteDocument(Document document) {
         documentRepository.delete(document);
     }
