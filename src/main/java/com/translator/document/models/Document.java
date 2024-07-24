@@ -9,7 +9,9 @@ public class Document {
 
     // Uses column annotation to specify details when mapping the attributes in the database
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seqGen")
+    // Uses sequence generator to allow hibernate to generate the id instead of asking the database
+    @SequenceGenerator(name = "seqGen", sequenceName = "document_id_seq", allocationSize = 1)
     @Column(unique = true, nullable = false)
     private Long id;
     @Column(nullable = false)
