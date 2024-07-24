@@ -5,6 +5,7 @@ import com.translator.document.models.Translator;
 import com.translator.document.repositories.TranslatorRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
@@ -56,8 +57,13 @@ public class TranslatorService {
         return new PagedModel<>(translatorRepository.findAll(pageable));
     }
 
+    public Optional<Translator> getOneTranslator(Long translatorId) {
+        return translatorRepository.findById(translatorId);
+    }
+
     @Transactional
-    public void deleteTranslator(Translator translator) {
+    public void deleteTranslator(Translator translator) throws DataIntegrityViolationException {
+        // If there are any documents linked to this translator, DataIntegrityViolationException will be thrown
         translatorRepository.delete(translator);
     }
 }

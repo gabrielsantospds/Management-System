@@ -4,6 +4,7 @@ import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
 import com.opencsv.bean.HeaderColumnNameMappingStrategy;
 import com.translator.document.dtos.DocumentDTO;
+import com.translator.document.dtos.DocumentResponseDTO;
 import com.translator.document.models.Document;
 import com.translator.document.models.DocumentCsvRepresentation;
 import com.translator.document.models.Translator;
@@ -45,6 +46,7 @@ public class DocumentService {
     // Uses this annotation to make database operations in an atomic and consistent manner
     @Transactional
     public Integer saveDocument(MultipartFile file) throws IOException {
+        // Gets a set of documents read by the csv that have the author saved in the database
         Set<Document> documents = parseCsv(file);
         if(documents == null || documents.isEmpty()) {
             return 0;
@@ -54,19 +56,27 @@ public class DocumentService {
     }
 
     private Set<Document> parseCsv(MultipartFile file) throws IOException {
+        // Try read the csv stream data
         try(Reader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
+            // Set the names of header columns to follow
             HeaderColumnNameMappingStrategy<DocumentCsvRepresentation> strategy =
                     new HeaderColumnNameMappingStrategy<>();
             strategy.setType(DocumentCsvRepresentation.class);
+
+            // Creates the csv bean with extra configuration
             CsvToBean<DocumentCsvRepresentation> csvToBean =
                     new CsvToBeanBuilder<DocumentCsvRepresentation>(reader)
                             .withMappingStrategy(strategy)
                             .withIgnoreEmptyLine(true)
                             .withIgnoreLeadingWhiteSpace(true)
                             .build();
+
+            // Goes through each line of the file
             return csvToBean.parse()
                     .stream()
                     .map(csvLine -> {
+                        // Validates if the translator email exists in the database,
+                        // if yes, adds the document to the returned list to be saved
                         Optional<Translator> translatorOptional =
                                 translatorService.findTranslatorByEmail(csvLine.getAuthor());
                         if(translatorOptional.isPresent()) {
@@ -98,13 +108,25 @@ public class DocumentService {
         return documentRepository.save(document);
     }
 
-    public PagedModel<DocumentDTO> getAllDocuments(Pageable pageable) {
-        return new PagedModel<>(documentRepository.findAll(pageable).map(document -> new DocumentDTO(
+    public PagedModel<DocumentResponseDTO> getAllDocuments(Pageable pageable) {
+        // Fetches data in a paged form and returns the email of the document owner
+        return new PagedModel<>(documentRepository.findAll(pageable).map(document -> new DocumentResponseDTO(
+                document.getId(),
                 document.getSubject(),
                 document.getContent(),
                 document.getLocale(),
                 document.getAuthor().getEmail()
         )));
+    }
+
+    public DocumentResponseDTO getCustomDocument(Document document) {
+        return new DocumentResponseDTO(
+                document.getId(),
+                document.getSubject(),
+                document.getContent(),
+                document.getLocale(),
+                document.getAuthor().getEmail()
+        );
     }
 
     @Transactional
