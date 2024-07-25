@@ -73,7 +73,8 @@ public class DocumentService {
             CsvToBean<DocumentCsvRepresentation> csvToBean =
                     new CsvToBeanBuilder<DocumentCsvRepresentation>(reader)
                             .withMappingStrategy(strategy)
-                            .withIgnoreLeadingWhiteSpace(false)
+                            .withIgnoreEmptyLine(true)
+                            .withIgnoreLeadingWhiteSpace(true)
                             .build();
 
             // Goes through each line of the file

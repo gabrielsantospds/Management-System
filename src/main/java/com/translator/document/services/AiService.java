@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class AiService {
 
-    public String chatResponse(String content) {
+    public String chatResponse(String documentContent) {
 
         // Validates the api key
         OpenAiApi openAiApi = new OpenAiApi(System.getenv("OPENAI_API_KEY"));
@@ -28,11 +28,13 @@ public class AiService {
         // Provides a text for AI to identify the location
         ChatResponse chatResponse = chatModel.call(
                 new Prompt(
-                        "Informe o idioma do texto a seguir no formato 'idioma-País', " +
-                                "ex: \"pt-BR\": " + content
+                        "Detect the language of the text " + documentContent +
+                        "and respond in the 'language-country' format. Example: 'pt-BR'"
                 )
         );
-        return chatResponse.getResult().getOutput().getContent();
+
+        String content = chatResponse.getResult().getOutput().getContent();
+        return content.substring(0, 4);
     }
 
 
