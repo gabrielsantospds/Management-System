@@ -34,7 +34,7 @@ public class AiService {
         );
 
         String content = chatResponse.getResult().getOutput().getContent();
-        return content.substring(0, 4);
+        return content.substring(0, 5);
     }
 
 
