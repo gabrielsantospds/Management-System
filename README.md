@@ -1,7 +1,7 @@
-# Management-System
+# Management-System-backend
 API REST developed with Java for Translator and Document Management System
 
-The application is hosted on Render,You can try it yourself by clicking [HERE](https://management-system-frontend-h23o.onrender.com/).
+The application is hosted on Render,You can try it yourself by accessing https://management-system-frontend-h23o.onrender.com/.
 
 The backend URL is https://management-system-backend-ic3p.onrender.com
 
