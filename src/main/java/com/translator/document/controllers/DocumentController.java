@@ -23,7 +23,7 @@ import java.util.Optional;
 // The annotation is used to create a RESTFul controller
 @RestController
 // Set CORS to allows request from the frontend application
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "https://management-system-frontend-h23o.onrender.com")
 public class DocumentController {
 
     // @Autowired is used to automatically inject the dependencies into the class
