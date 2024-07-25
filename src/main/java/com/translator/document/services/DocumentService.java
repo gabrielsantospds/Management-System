@@ -37,6 +37,9 @@ public class DocumentService {
     @Autowired
     private TranslatorService translatorService;
 
+    @Autowired
+    private AiService aiService;
+
     // The methods below perform query and change operations on the database through the translatorRepository
 
     public Optional<Document> findDocumentById(Long id) {
@@ -81,10 +84,13 @@ public class DocumentService {
                                 translatorService.findTranslatorByEmail(csvLine.getAuthor());
                         if(translatorOptional.isPresent()) {
                             Translator translatorFound = translatorOptional.get();
+
+                            // Generates locale from content
+                            String locale = aiService.chatResponse(csvLine.getContent());
                             return new Document(
                                     csvLine.getSubject(),
                                     csvLine.getContent(),
-                                    csvLine.getLocale(),
+                                    locale,
                                     translatorFound
                             );
                         } else {
