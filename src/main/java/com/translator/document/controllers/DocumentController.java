@@ -41,7 +41,7 @@ public class DocumentController {
             return ResponseEntity.status(HttpStatus.CREATED).body(
                     numberOfDocumentsSaved + " documents were saved"
             );
-        } catch (IOException e) {
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                     "There was a problem reading the file");
         }

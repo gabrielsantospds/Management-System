@@ -10,6 +10,7 @@ import com.translator.document.models.DocumentCsvRepresentation;
 import com.translator.document.models.Translator;
 import com.translator.document.repositories.DocumentRepository;
 import com.zaxxer.hikari.HikariDataSource;
+import jakarta.persistence.Table;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +23,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -42,6 +45,13 @@ public class DocumentService {
     @Autowired
     private AiService aiService;
 
+    @Autowired
+    HikariDataSource hikariDataSource;
+
+    // Gets the batch sized defined on application.properties
+    @Value("${spring.jpa.properties.hibernate.jdbc.batch_size}")
+    private int batchSize;
+
     // The methods below perform query and change operations on the database through the translatorRepository
 
     public Optional<Document> findDocumentById(Long id) {
@@ -50,15 +60,43 @@ public class DocumentService {
 
     // Uses this annotation to make database operations in an atomic and consistent manner
     @Transactional
-    public Integer saveDocument(MultipartFile file) throws IOException {
+    public Integer saveDocument(MultipartFile file) throws Exception {
         // Gets a set of documents read by the csv that have the author saved in the database
         Set<Document> documents = parseCsv(file);
         if(documents == null || documents.isEmpty()) {
             return 0;
         }
 
-        documentRepository.saveAll(documents);
-        return documents.size();
+        // Query to insert documents
+        String sql = String.format(
+                "INSERT INTO %s (subject, content, locale, author) " +
+                        "VALUES (?, ?, ?, ?)",
+                Document.class.getAnnotation(Table.class).name()
+        );
+
+        // Creates a prepared statement by using the query and the connection
+        try (Connection connection = hikariDataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)
+        ){
+            int counter = 0;
+
+            // For every document, set the value of statements inputs and add it to the batch
+            for (Document document : documents) {
+                statement.clearParameters();
+                statement.setString(1, document.getSubject());
+                statement.setString(2, document.getContent());
+                statement.setString(3, document.getLocale());
+                statement.setObject(4, document.getAuthor());
+                statement.addBatch();
+                if ((counter + 1) % batchSize == 0 || (counter + 1) == documents.size()) {
+                    statement.executeBatch();
+                    statement.clearBatch();
+                }
+                counter++;
+            }
+            return documents.size();
+        }
+
     }
 
     private Set<Document> parseCsv(MultipartFile file) throws IOException {
