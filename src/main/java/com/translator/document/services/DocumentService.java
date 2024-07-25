@@ -9,7 +9,9 @@ import com.translator.document.models.Document;
 import com.translator.document.models.DocumentCsvRepresentation;
 import com.translator.document.models.Translator;
 import com.translator.document.repositories.DocumentRepository;
+import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.stereotype.Service;
@@ -40,6 +42,12 @@ public class DocumentService {
     @Autowired
     private AiService aiService;
 
+    @Autowired
+    private HikariDataSource hikariDataSource;
+
+    @Value("${spring.jpa.properties.hibernate.jdbc.batch_size}")
+    private int batchSize;
+
     // The methods below perform query and change operations on the database through the translatorRepository
 
     public Optional<Document> findDocumentById(Long id) {
@@ -54,6 +62,11 @@ public class DocumentService {
         if(documents == null || documents.isEmpty()) {
             return 0;
         }
+
+//        String sql = String.format(
+//                "INSERT INTO %s"
+//        )
+
         documentRepository.saveAll(documents);
         return documents.size();
     }
@@ -71,7 +84,6 @@ public class DocumentService {
                     new CsvToBeanBuilder<DocumentCsvRepresentation>(reader)
                             .withMappingStrategy(strategy)
                             .withIgnoreEmptyLine(true)
-                            .withIgnoreLeadingWhiteSpace(true)
                             .build();
 
             // Goes through each line of the file
