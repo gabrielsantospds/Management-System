@@ -13,8 +13,6 @@ public class DocumentCsvRepresentation {
     private String subject;
     @CsvBindByName(column = "content")
     private String content;
-    @CsvBindByName(column = "locale")
-    private String locale;
     @CsvBindByName(column = "author")
     private String author;
 
